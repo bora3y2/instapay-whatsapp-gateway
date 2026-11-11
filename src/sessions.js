@@ -380,8 +380,36 @@ export class SessionManager {
     return this.snapshot(runtime);
   }
 
+  /**
+   * Shared hosting may stop an idle Node.js process between requests. On wake
+   * the socket is not up yet, so a send waits briefly for it instead of
+   * failing the customer's OTP code.
+   */
+  async waitForConnection(id, timeoutMs = 12_000) {
+    const runtime = this.runtime(id);
+    if (runtime.status === "connected" && runtime.sock) return runtime;
+
+    const doc = await GatewaySession.findOne({ sessionId: id }).lean();
+    if (!doc?.enabled) return null;
+
+    if (!runtime.starting && runtime.status !== "qr" && runtime.status !== "connecting") {
+      void this.startSocket(id).catch(() => undefined);
+    }
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (runtime.status === "connected" && runtime.sock) return runtime;
+      await sleep(400);
+    }
+    return null;
+  }
+
   async send(id, to, message) {
-    const runtime = this.sessions.get(id);
+    let runtime = this.sessions.get(id);
+    if (!runtime || !runtime.sock || runtime.status !== "connected") {
+      runtime = await this.waitForConnection(id);
+    }
+
     if (!runtime || !runtime.sock || runtime.status !== "connected") {
       throw httpError(
         409,
