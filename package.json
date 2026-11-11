@@ -1,0 +1,21 @@
+{
+  "name": "instapay-whatsapp-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Always-on WhatsApp Web (linked device) gateway for InstaPay Orders. QR pairing + send API.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --env-file=.env --watch src/index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "6.7.24",
+    "express": "4.21.2",
+    "mongoose": "^8.9.5",
+    "pino": "^9.6.0",
+    "qrcode": "^1.5.4"
+  }
+}

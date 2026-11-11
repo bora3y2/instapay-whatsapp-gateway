@@ -1,0 +1,21 @@
+# Render Blueprint — one-click deploy of the WhatsApp gateway.
+# The service must stay awake: use a paid instance (Starter or higher), not the
+# free plan, or the WhatsApp socket drops when the service sleeps.
+services:
+  - type: web
+    name: instapay-whatsapp-gateway
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: GATEWAY_SECRET
+        sync: false
+      - key: DEFAULT_COUNTRY_CODE
+        value: "20"
+      - key: BAILEYS_LOG_LEVEL
+        value: silent
+      - key: LOG_LEVEL
+        value: info
